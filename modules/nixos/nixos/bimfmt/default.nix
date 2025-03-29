@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   inputs,
   hardware,
   ...
@@ -17,6 +18,18 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    boot.binfmt.emulatedSystems = lib.remove hardware.system [ "x86_64-linux" "aarch64-linux" ];
+    boot.binfmt = {
+      emulatedSystems = lib.remove hardware.system [ "x86_64-linux" "aarch64-linux" ];
+      registrations = {
+        appimage = {
+          wrapInterpreterInShell = false;
+          interpreter = "${pkgs.appimage-run}/bin/appimage-run";
+          recognitionType = "magic";
+          offset = 0;
+          mask = ''\xff\xff\xff\xff\x00\x00\x00\x00\xff\xff\xff'';
+          magicOrExtension = ''\x7fELF....AI\x02'';
+        };
+      };
+    };
   };
 }
